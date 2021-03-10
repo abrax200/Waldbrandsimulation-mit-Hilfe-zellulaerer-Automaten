@@ -7,11 +7,7 @@ import sys
 from random import randint
 import numpy as np
 
-wald = 0
-brennend = 1
-verbrannt = 2
-schneise = 3
-leer = 4
+
 
 class Waldbrandsimulation:
 
@@ -217,10 +213,10 @@ print('BITTE NUR ZAHLEN VON 1 bis ', size, '\nz. B. 1 1')
 inp = str(input('WELCHE ZELLE SOLL BRENNEN: '))
 
 if inp != '':
-        feld[0][int(inp.split(' ')[0])][int(inp.split(' ')[1])] = simulation.feuer
+        feld[0][int(inp.split(' ')[0])][int(inp.split(' ')[1])] = simulation.brennend
 
 else:
-        feld[0][15][0] = simulation.feuer
+        feld[0][15][0] = simulation.brennend
 
 
 
