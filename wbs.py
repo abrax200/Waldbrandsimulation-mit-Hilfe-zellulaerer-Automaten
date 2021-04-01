@@ -11,6 +11,44 @@ import numpy as np
 
 class Waldbrandsimulation:
 
+        def path(self, p):
+                if os.name == 'nt':return(p)
+                else:return(p.replace('\\', '/'))
+
+
+
+        def Argumente(self, arg):
+
+                argumente = []
+                argumente[:] = sys.argv[:]
+                del argumente[0]
+
+                self.standards = {
+                        'size':30, 
+                        'fluss':False, 
+                        'bcell':"15,0", 
+                        'schneisen':'', 
+                        "wr":'W', 
+                        'ws':1, 
+                        'nogui':False,
+                        'intervall':0.25,
+                        'rs':0,
+                        'rb':0,
+                        'rnd':False
+                        }
+
+                for i in argumente:
+                        if str(arg) in i:
+                                value = i.replace(str(arg) + '=', '')
+
+                                if value == str(arg):return(True)
+                                else:return(value)
+                                break
+                
+                return(self.standards[str(arg)])
+
+
+
         def preinit(self):
                 self.clear()
                 a = os.system('title Waldbrandsimulation')
@@ -50,10 +88,13 @@ class Waldbrandsimulation:
                 return(verbrannte_fläche, bewaldete_fläche, brennende_fläche)
 
 
-        def ErstelleFeld(self):
+
+        def ErstelleFeld(self, rnd):
 
                 # definiert ein zweidimensionales Array
-                feld = [np.array([[self.wald for j in range(self.size)] for i in range(self.size)]), np.array([[[10, 0, 10] for j in range(self.size)] for i in range(self.size)])]#status, brennpotential, time, feuchte
+
+                if rnd == True:feld = [np.array([[randint(0, randint(0, 1)) * 4 for j in range(self.size)] for i in range(self.size)]), np.array([[[10, 0, 10] for j in range(self.size)] for i in range(self.size)])]#status, brennpotential, time, feuchte
+                else:feld = [np.array([[0 for j in range(self.size)] for i in range(self.size)]), np.array([[[10, 0, 10] for j in range(self.size)] for i in range(self.size)])]#status, brennpotential, time, feuchte
 
                 return feld
 
@@ -65,7 +106,7 @@ class Waldbrandsimulation:
                         return(0)
 
                 else:   
-                        brennstoff = int(f[1][i][j][0])
+                        brennstoff = float(feld[1][i][j][0])
                         brenndauer = int(f[1][i][j][1])
                         return(brennstoff * brenndauer)
 
@@ -110,23 +151,24 @@ class Waldbrandsimulation:
                 return(sum_brennstärke)
 
 
-
-        def BearbeiteZelle(self, f, i, j, wr, ws):
+        
+        def BearbeiteZelle(self, f, i, j, wr, ws, rs, rmoisture):
 
                 status = int(f[0][i][j])
-                brennstoff = int(f[1][i][j][0])
+                brennstoff = float(feld[1][i][j][0])
                 brenndauer = int(f[1][i][j][1])
                 feuchtigkeit = int(f[1][i][j][2])
 
-                if int(f[0][i][j]) == 1 and int(f[1][i][j][0]) > 0:
-                        brennstoff = int(f[1][i][j][0]) - 1
+                if int(f[0][i][j]) == 1 and float(feld[1][i][j][0]) > 0:
+                        brennstoff = float(feld[1][i][j][0]) - (1 + rs)
                         brenndauer = int(f[1][i][j][1]) + 1
         
-                if int(f[1][i][j][0]) == 0 and int(f[0][i][j]) == 1:
+                if float(feld[1][i][j][0]) <= 0 and int(f[0][i][j]) == 1:
                         status = 2 # -
                         brenndauer = 0
+                        brennstoff = 0
         
-                if (f[0][i][j] == 0) and self.SummeBrennstärke(f, i, j, wr, ws) >= int(f[1][i][j][2]) and int(f[1][i][j][0]) > 0:
+                if (f[0][i][j] == 0) and (self.SummeBrennstärke(f, i, j, wr, ws) - rmoisture) >= int(f[1][i][j][2]) and float(feld[1][i][j][0]) > 0:
                         status = 1 # /
 
                 if f[0][i][j] != status:
@@ -140,11 +182,13 @@ class Waldbrandsimulation:
 
 
         #Für Probleme mit Pfeilarithmetik
+
+        
         def KopiereFeld(self, fQuell,fZiel):
                 for i in range(self.size):
                         for j in range(self.size):
-                                fZiel[0][i][j] = fQuell[0][i][j]
                                 fZiel[1][i][j] = fQuell[1][i][j]
+                                fZiel[0][i][j] = fQuell[0][i][j]
                 return fZiel
 
 
@@ -159,43 +203,49 @@ simulation = Waldbrandsimulation()
 simulation.preinit()
 
 
+#größe festlegen
+size = int(simulation.Argumente('size'))
 
-size = 30
 
-inp = str(input('BITTE GRÖßE ANGEBEN (z.B. 30): '))
 
-if inp != '':
-        size = int(inp)
-
+# Instanz erzeugen
 simulation.init(size)
 
 
 
 #Windrichtung
-simulation.clear()
+windrichtung = str(simulation.Argumente('wr'))
+windstärke = float(simulation.Argumente('ws'))
 
-windrichtung = 'W'
-windstärke = 1
 
-inp = str(input('NORDEN = N, SÜDEN = S, WESTEN = W, OSTEN = O, FREI LASSEN FÜR KEINEN WIND\nWINDRICHTUNG: '))
 
-if inp !='':
-        windstärke = 2
-        windrichtung = str(inp)
+#Regen
+regenstärke = float(simulation.Argumente('rs'))
+regenbeginn = int(simulation.Argumente('rb'))
+
+
+
+#Regen
+rnd = simulation.Argumente('rnd')
 
 
 
 #Felder werden erstellt
-feld = simulation.ErstelleFeld()
-feld2 = simulation.ErstelleFeld()
+feld = simulation.ErstelleFeld(rnd)
+feld2 = simulation.ErstelleFeld(False)
+
+
+
+#Fluss
+if simulation.Argumente('fluss') == True:
+        feld[0] = np.load(simulation.path('.\\fluss\\stati_fluss.npy'))
+        feld[1] = np.load(simulation.path('.\\fluss\\parameter_fluss.npy'))
+        size = 100
 
 
 
 #Schneisen werden erzeugt
-simulation.clear()
-
-schneise_pos = input('SCHNEISEN\n(z. B. 1 3 erzeugt Schneisen in Spalte 1 und 3): ').split(' ')
-print('\n', schneise_pos)
+schneise_pos = simulation.Argumente('schneisen').split(',')
 
 if schneise_pos != ['']:
         for i in range(size):
@@ -206,22 +256,13 @@ if schneise_pos != ['']:
 
 
 #Feuer erzeugen
-simulation.clear()
-
-print('BITTE NUR ZAHLEN VON 1 bis ', size, '\nz. B. 1 1')
-
-inp = str(input('WELCHE ZELLE SOLL BRENNEN: '))
-
-if inp != '':
-        feld[0][int(inp.split(' ')[0])][int(inp.split(' ')[1])] = simulation.brennend
-
-else:
-        feld[0][15][0] = simulation.brennend
+bcell = simulation.Argumente('bcell')
+feld[0][int(bcell.split(',')[0])][int(bcell.split(',')[1])] = simulation.brennend
 
 
 
 #feld speichern
-np.save('.\\data\\gen0', feld[0])
+np.save(simulation.path('.\\data\\gen0'), feld[0])
 
 
 #lauf 0
@@ -229,6 +270,7 @@ verbrannte_fläche, bewaldete_fläche, brennende_fläche = simulation.Statistik(
 generation = 0
 has_changed = False
 changes = []
+regenfeuchte = 0
 
 
 
@@ -242,21 +284,28 @@ while brennende_fläche > 0:
 
         for i in range(size):
                 for j in range(size):
-                        feld2[1][i][j], feld2[0][i][j], change = simulation.BearbeiteZelle(feld, i, j, windrichtung, windstärke)
+
+                        if generation >= regenbeginn:
+                                regenfeuchte += 0.1 * regenstärke
+                                feld2[1][i][j], feld2[0][i][j], change = simulation.BearbeiteZelle(feld, i, j, windrichtung, windstärke, regenstärke, regenfeuchte)
+                        
+                        else:
+                                feld2[1][i][j], feld2[0][i][j], change = simulation.BearbeiteZelle(feld, i, j, windrichtung, windstärke, 0, 0)
 
                         if change != []:
                                 changes.append(change)
         
         verbrannte_fläche, bewaldete_fläche, brennende_fläche = simulation.Statistik(feld2)
-        np.save('.\\data\\gen' + str(generation), np.array(changes))#speichere Array
+        np.save(simulation.path('.\\data\\gen' + str(generation)), np.array(changes))#speichere Array
         changes = []
-        feld = simulation.KopiereFeld(feld2,feld)
+        
+        feld = simulation.KopiereFeld(feld2, feld)
 
-print('Wird eine GUI benötigt?')
-inp = str(input('Y/n: '))
 
-if inp.upper() == 'N':
-        os.system('.\\render.py')
 
-else:
-        os.system('.\\render_gui.py')
+intervall = str(simulation.Argumente('intervall'))
+
+
+
+if simulation.Argumente('nogui') == True:os.system(simulation.path('.\\render.py intervall=' + intervall))
+else:os.system(simulation.path('.\\render_gui.py intervall=' + intervall))
