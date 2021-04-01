@@ -1,6 +1,31 @@
 import os
 import time
 import numpy as np
+import sys
+
+
+def path(p):
+    if os.name == 'nt':return(p)
+    else:return(p.replace('\\', '/'))
+
+
+
+def Argumente(arg):
+        standards = {
+                'intervall':0.25
+        }
+
+        for i in sys.argv:
+                if str(arg) in i:
+                        value = i.replace(str(arg) + '=', '')
+
+                        if value == str(arg):return(True)
+                        else:return(value)
+                        break
+                
+        return(standards[str(arg)])
+
+
 
 def AusgabeTmp(feld, s):
 
@@ -8,7 +33,7 @@ def AusgabeTmp(feld, s):
                 out =""
 
                 for j in range(s):
-                        out = out + str(feld[i][j]).replace('0', 'W').replace('1', '/').replace('2', '-').replace('3', '|') + " "
+                        out = out + str(feld[i][j]).replace('0', 'W').replace('1', '/').replace('2', '-').replace('3', '|').replace('4', ' ').replace('5', '~') + " "
 
                 print(out)
 
@@ -24,24 +49,18 @@ def init():
 
 
 
-update = 0.25
-
-inp = str(input('INTERVAL (z.B. 0.25): '))
-
-if inp != '':
-        update = float(inp)
-        #/update
+update = float(Argumente('intervall'))
 
 
 
-feld = np.load('.\\data\\gen0.npy')
+feld = np.load(path('.\\data\\gen0.npy'))
 size = len(feld)
 
 
 
-for i in range(len([name for name in os.listdir('.\\data') if os.path.isfile(os.path.join('.\\data', name))]) - 1):
+for i in range(len([name for name in os.listdir(path('.\\data')) if os.path.isfile(os.path.join(path('.\\data'), name))]) - 1):
     
-    changes = np.load('.\\data\\gen' + str(i + 1) + '.npy')
+    changes = np.load(path('.\\data\\gen' + str(i + 1) + '.npy'))
     length = len(changes)
 
     for i in range(length):
