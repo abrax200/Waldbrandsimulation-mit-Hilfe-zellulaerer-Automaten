@@ -5,11 +5,16 @@ import numpy as np
 import sys
 
 
+def command(p):
+    if os.name == "nt":
+        return ".\\" + p
+    return "python3 " + p.replace("\\", "/")
+
+
 def path(p):
     if os.name == "nt":
-        return p
-    else:
-        return p.replace("\\", "/")
+        return ".\\" + p
+    return p.replace("\\", "/")
 
 
 def Argumente(arg):
@@ -50,7 +55,9 @@ def AusgabeTmp(feld, s):
 
 
 def clear():
-    if os.system("cls") != 0:
+    if os.name == "nt":
+        os.system("cls")
+    else:
         os.system("clear")
 
 
@@ -58,38 +65,32 @@ def init():
     a = os.system("title Waldbrandsimulation")
     del a
 
-    clear()
+    # clear()
 
 
 update = float(Argumente("intervall"))
 
 
-feld = np.load(path(".\\data\\gen0.npy"))
+feld = np.load(path("data\\gen0.npy"))
 size = len(feld)
 
 
-for i in range(
-    len(
-        [
-            name
-            for name in os.listdir(path(".\\data"))
-            if os.path.isfile(os.path.join(path(".\\data"), name))
-        ]
-    )
-    - 1
-):
+for name in os.listdir(path("data")):
+    print(name)
+    if os.path.isfile(os.path.join(path("data"), name)) and name.startswith("gen"):
+        changes = np.load(path("data\\" + name))
+        length = len(changes)
 
-    changes = np.load(path(".\\data\\gen" + str(i + 1) + ".npy"))
-    length = len(changes)
+        for i in range(length):
+            x = int(changes[i][1])
+            y = int(changes[i][2])
+            feld[x][y] = changes[i][0]
 
-    for i in range(length):
-        x = int(changes[i][1])
-        y = int(changes[i][2])
-        feld[x][y] = changes[i][0]
+        clear()
 
-    clear()
-    AusgabeTmp(feld, size)
-    time.sleep(update)
+        AusgabeTmp(feld, size)
+        time.sleep(update)
 
-a = os.system("pause")
-del a
+if os.name == "nt":
+    a = os.system("pause")
+    del a
