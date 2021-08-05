@@ -9,9 +9,8 @@ from matplotlib.colors import ListedColormap
 
 def path(p):
     if os.name == "nt":
-        return p
-    else:
-        return p.replace("\\", "/")
+        return ".\\" + p
+    return p.replace("\\", "/")
 
 
 def Argumente(arg):
@@ -31,22 +30,23 @@ def Argumente(arg):
 
 
 def init():
-    a = os.system("title Waldbrandsimulation")
-    del a
+    if os.name == "nt":
+        a = os.system("title Waldbrandsimulation")
+        del a
 
     global feld
     global size
     global data_len
     global data_counter
 
-    feld = np.load(path(".\\data\\gen0.npy"))
+    feld = np.load(path("data\\gen0.npy"))
     size = len(feld)
     data_len = (
         len(
             [
                 name
-                for name in os.listdir(path(".\\data"))
-                if os.path.isfile(os.path.join(path(".\\data"), name))
+                for name in os.listdir(path("data"))
+                if os.path.isfile(os.path.join(path("data"), name))
             ]
         )
         - 1
@@ -64,7 +64,7 @@ def updatefig(*args):
 
     try:
 
-        changes = np.load(path(".\\data\\gen" + str(data_counter + 1) + ".npy"))
+        changes = np.load(path("data\\gen" + str(data_counter + 1) + ".npy"))
         length = len(changes)
 
         for i in range(length):
