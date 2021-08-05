@@ -51,10 +51,13 @@ class Waldbrandsimulation:
         return self.standards[str(arg)]
 
     def preinit(self):
-        self.clear()
-        a = os.system("title Waldbrandsimulation")
-        del a
-        os.system("del data\*.* /q")
+        #self.clear()
+        if os.name == "nt":
+            a = os.system("title Waldbrandsimulation")
+            del a
+            os.system("del data\*.* /q")
+        else:
+            os.system("rm data/*")
 
     def init(self, size):
         self.wald = 0
@@ -205,7 +208,9 @@ class Waldbrandsimulation:
         return fZiel
 
     def clear(self):
-        if os.system("cls") != 0:
+        if os.name == "nt":
+            os.system("cls")
+        else:
             os.system("clear")
 
 
@@ -278,9 +283,9 @@ regenfeuchte = 0
 while brennende_fläche > 0:
 
     generation = generation + 1
-    print("GENERATION: ", generation)
+    # print("GENERATION: ", generation)
 
-    simulation.clear()
+    #simulation.clear()
 
     for i in range(size):
         for j in range(size):
@@ -307,6 +312,8 @@ while brennende_fläche > 0:
 
     feld = simulation.KopiereFeld(feld2, feld)
 
+
+print("Generationen:", generation)
 
 intervall = str(simulation.Argumente("intervall"))
 
