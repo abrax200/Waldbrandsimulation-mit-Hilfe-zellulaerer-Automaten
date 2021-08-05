@@ -20,10 +20,10 @@ args = [""]
 
 #clear()
 
-args.append('size=' + str(input('WIE GROSS SOLL DAS FELD SEIEN (Z.B. 30)? ')))
-clear()
-args.append('bcell=' + str(input('WELCHE ZELLE SOLL BRENNEN (Z.B. 15 0)? ')).replace(' ', ','))
-clear()
+#if str(input("SOLL EIN FELD MIT EINEM FLUSS VERWENDET WERDEN (Y/N)? ")) == "Y":
+#    clear()
+#    args.append("fluss")
+#    args.append("size=100")
 #clear()
 
 args.append("size=" + str(input("WIE GROSS SOLL DAS FELD SEIEN (Z.B. 30)? ")))
