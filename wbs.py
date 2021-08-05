@@ -51,7 +51,7 @@ class Waldbrandsimulation:
         return self.standards[str(arg)]
 
     def preinit(self):
-        #self.clear()
+        # self.clear()
         if os.name == "nt":
             a = os.system("title Waldbrandsimulation")
             del a
@@ -285,7 +285,7 @@ while brennende_fläche > 0:
     generation = generation + 1
     # print("GENERATION: ", generation)
 
-    #simulation.clear()
+    # simulation.clear()
 
     for i in range(size):
         for j in range(size):
