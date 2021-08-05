@@ -7,6 +7,8 @@ import sys
 from random import randint
 import numpy as np
 
+if os.name != "nt":
+    os.system("mkdir -p data")
 
 class Waldbrandsimulation:
     def command(self, p):
@@ -57,7 +59,7 @@ class Waldbrandsimulation:
             del a
             os.system("del data\*.* /q")
         else:
-            os.system("rm data/*")
+            os.system("rm data/gen*.npy")
 
     def init(self, size):
         self.wald = 0
